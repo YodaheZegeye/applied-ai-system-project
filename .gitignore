@@ -1,0 +1,20 @@
+# secrets
+.env
+
+# virtual environment
+.venv/
+
+# runtime logs (not source)
+logs/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# test cache
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db

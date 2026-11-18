@@ -1,0 +1,51 @@
+flowchart TD
+    Human(["👤 Human\n① types music request\n④ listens to previews\n⑤ reviews & clicks Apple Music"])
+
+    subgraph UI["🖥️ Streamlit UI — app.py"]
+        Input["Text Input\ne.g. 'sad K-pop for a late night drive'"]
+        Progress["Live Step Progress\nshows each agent step in real time"]
+        Display["Result Cards\nartwork · audio preview · Apple Music link"]
+    end
+
+    subgraph Agent["🤖 Agentic Workflow — src/agent.py"]
+        Call1["Gemini Call 1\nextract_profile_and_query()\n→ genre, mood, energy + search query"]
+        Call2["Gemini Call 2\nrank_and_summarize()\n→ top 5 picks + reasons + summary"]
+    end
+
+    subgraph Retrieval["🔍 RAG Retrieval — src/itunes.py"]
+        iTunes["iTunes Search API\nworldwide catalog · free · no key\nreturns 30 candidate songs"]
+    end
+
+    subgraph External["☁️ External Services"]
+        Gemini(["Google Gemini API\ngemini-3.8-flash"])
+        AppleMusic(["Apple iTunes\nWorldwide Catalog"])
+    end
+
+    subgraph Infra["🛠️ Infrastructure"]
+        Logger["src/logger.py\ndaily log file in logs/"]
+        Env[".env  GEMINI_API_KEY"]
+    end
+
+    subgraph Testing["🧪 Automated Testing — pytest"]
+        TestFile["tests/test_recommender.py\n13 tests"]
+        Scorer["src/recommender.py\nscoring engine\nscore_song · recommend_songs · Recommender"]
+        HumanTest(["👤 Human\nruns: pytest"])
+    end
+
+    Human -->|"① describes mood"| Input
+    Input -->|"② triggers agent"| Call1
+    Call1 <-->|"API call 1 of 2"| Gemini
+    Call1 -->|"profile + query"| iTunes
+    iTunes <-->|"HTTP search"| AppleMusic
+    iTunes -->|"30 real songs"| Call2
+    Call2 <-->|"API call 2 of 2"| Gemini
+    Call2 -->|"top 5 + summary"| Display
+    Call1 & iTunes & Call2 --> Progress
+    Progress -->|"③ sees live updates"| Human
+    Display -->|"④⑤ listens + reviews"| Human
+
+    Agent --> Logger
+    Env -->|"authenticates"| Gemini
+
+    HumanTest -->|"runs"| TestFile
+    TestFile -->|"validates"| Scorer
